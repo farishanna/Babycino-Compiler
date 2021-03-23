@@ -27,6 +27,7 @@ statement :
   | 'while' '(' expression ')' statement               # StmtWhile
   | 'System.out.println' '(' expression ')' ';'        # StmtPrint
   | identifier '=' expression ';'                      # StmtAssign
+  | identifier '+=' expression ';'                     # StmtAddAssign
   | identifier '[' expression ']' '=' expression ';'   # StmtArrayAssign
   ;
 
@@ -39,7 +40,8 @@ expression :
   | expression ( '*' ) expression                                         # ExpBinOp
   | expression ( '+' | '-' ) expression                                   # ExpBinOp
   | expression ( '<' ) expression                                         # ExpBinOp
-  | expression ( '&&' ) expression                                        # ExpBinOp
+  | expression ( '==' ) expression                                        # ExpBinOp
+  | expression ( '&&' ) expression                                        # ExpBinOp  
   | INT        # ExpConstInt
   | 'true'     # ExpConstTrue
   | 'false'    # ExpConstFalse
