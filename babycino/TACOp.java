@@ -145,8 +145,10 @@ public class TACOp {
                 return 2;
             case "*":
                 return 3;
+			case "==":
+				return 4;
             case "offset":
-                return 4;
+                return 5;
             default:
                 throw new IllegalArgumentException();
         }
@@ -162,7 +164,9 @@ public class TACOp {
                 return "-";
             case 3:
                 return "*";
-            case 4:
+			case 4:
+				return "==";	
+            case 5:
                 return "offset";
             default:
                 throw new IllegalArgumentException();
