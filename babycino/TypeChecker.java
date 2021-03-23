@@ -112,7 +112,15 @@ public class TypeChecker extends MiniJavaBaseListener {
         this.check(lhs.compatibleWith(rhs), ctx, "Assignment of value of type "
             + rhs + " to variable of incompatible type " + lhs);
     }
-
+	
+	@Override
+    public void exitStmtAddAssign(MiniJavaParser.StmtAddAssignContext ctx) {
+        Type lhs = this.identifierType(ctx.identifier());
+        Type rhs = this.types.pop();
+        this.check(rhs.isInt(), ctx, "Expected int to be assigned to variable; actual type: " + rhs);
+		this.check(lhs.isInt(), ctx, "Expected int to be assigned to variable; actual type: " + lhs);
+    }
+	
     @Override
     public void exitStmtArrayAssign(MiniJavaParser.StmtArrayAssignContext ctx) {
         Type lhs = this.identifierType(ctx.identifier());
@@ -149,6 +157,10 @@ public class TypeChecker extends MiniJavaBaseListener {
                 this.check(lhs.isBoolean(), ctx, "Expected boolean as 1st argument to &&; actual type: " + lhs);
                 this.check(rhs.isBoolean(), ctx, "Expected boolean as 2nd argument to &&; actual type: " + rhs);
                 break;
+			case "==":
+				this.check((lhs.isBoolean() && rhs.isBoolean()) || (lhs.isInt() && rhs.isInt()), ctx, 
+				"Expected matching boolean or int as 1st and 2nd arguments to ==; actual type: " + lhs + " and " + rhs);
+				break;
             default:
                 this.check(lhs.isInt(), ctx, "Expected int as 1st argument to " + op + "; actual type: " + lhs);
                 this.check(rhs.isInt(), ctx, "Expected int as 2nd argument to " + op + "; actual type: " + rhs);
@@ -160,6 +172,7 @@ public class TypeChecker extends MiniJavaBaseListener {
             // all other operations return ints.
             case "&&":
             case "<":
+			case "==":
                 this.types.push(new Type(Kind.BOOLEAN));
                 break;
             default:
