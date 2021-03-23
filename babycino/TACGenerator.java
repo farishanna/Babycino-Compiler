@@ -173,6 +173,41 @@ public class TACGenerator extends MiniJavaBaseVisitor<TACBlock> {
         return result;
     }
 
+	@Override
+	public TACBlock visitStmtAddAssign(MiniJavaParser.StmtAddAssignContext ctx){
+		TACBlock result = new TACBlock();
+		// Generate code for the expression to assign.
+		TACBlock expr = this.visit(ctx.expression());
+		result.addAll(expr);
+
+		// Is the identifier a method local variable or a class instance variable?
+		String id = ctx.identifier().getText();
+		if (this.method.hasVar(id)) {
+			// Variable is stored in vl register.
+			String reg = this.genreg();
+			result.add(TACOp.add(reg, "vl" + this.method.getVarIndex(id), expr.getResult()));
+			result.add(TACOp.mov("vl" + this.method.getVarIndex(id), reg));
+		}
+		else if (this.current.hasAnyVar(id)) {
+			// Variable is stored in memory, indexed by this (vl0).
+			String dest = this.genreg();
+			String idx = this.genreg();
+			String reg = this.genreg();
+
+			result.add(TACOp.immed(idx, this.current.getVarIndex(id)));
+			result.add(TACOp.offset(dest, "vl0", idx));
+			result.add(TACOp.store(dest, reg));
+			result.add(TACOp.add(reg, dest, expr.getResult()));
+		}
+		else {
+			System.err.println("Unrecognised variable: " + id);
+			throw new InternalError();
+		}
+
+		return result;
+	}
+
+
     @Override
     public TACBlock visitStmtArrayAssign(MiniJavaParser.StmtArrayAssignContext ctx) {
         TACBlock result = new TACBlock();
@@ -228,7 +263,7 @@ public class TACGenerator extends MiniJavaBaseVisitor<TACBlock> {
         TACBlock expr2 = this.visit(ctx.expression(1));
 
         String op = ctx.getChild(1).getText();
-        if (op.equals("&&")) {
+        if (op.equals("&&")){
             // && should short-circuit.
             String end = this.genlab();
             String res = this.genreg();
@@ -483,4 +518,3 @@ public class TACGenerator extends MiniJavaBaseVisitor<TACBlock> {
 
     
 }
-
